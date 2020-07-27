@@ -16,9 +16,11 @@ public class XCResultFile {
     }
     
     public let url: URL
+    private let executablePath: String?
     
-    public init(url: URL) {
+    public init(url: URL, executablePath: String? = nil) {
         self.url = url
+        self.executablePath = executablePath
     }
     
     public func getInvocationRecord() -> ActionsInvocationRecord? {
@@ -133,8 +135,14 @@ public class XCResultFile {
     private func xcrun(_ arguments: [String], output: XCRunOutput = .onlyOnSuccess) -> Data? {
         autoreleasepool {
             let task = Process()
-            task.launchPath = "/usr/bin/xcrun"
-            task.arguments = arguments
+            
+            if let path = executablePath {
+                task.launchPath = path
+                task.arguments = Array(arguments.dropFirst())
+            } else {
+                task.launchPath = "/usr/bin/xcrun"
+                task.arguments = arguments
+            }
             
             var resultData: Data?
             if output != .never {
